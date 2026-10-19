@@ -11,21 +11,28 @@ const books = [
   { id: 5, title: "Вишнёвый сад", author: "Антон Чехов", price: 380 }
 ];
 
-function Catalog() {
+function Catalog({ onAdd }) {
   return h("section", null,
     h("h2", null, "Список книг"),
     books.map(book => h("article", { className: "book", key: book.id },
       h("h3", null, book.title),
       h("p", null, `Автор: ${book.author}`),
-      h("p", null, `Цена: ${book.price} руб.`)
+      h("p", null, `Цена: ${book.price} руб.`),
+      h("button", { type: "button", onClick: () => onAdd(book) }, "Добавить в корзину")
     ))
   );
 }
 
-function Cart() {
+function Cart({ cart }) {
   return h("section", null,
     h("h2", null, "Корзина"),
-    h("p", null, "Корзина пуста.")
+    cart.length === 0
+      ? h("p", null, "Корзина пуста.")
+      : cart.map((book, index) => h("article", { className: "book", key: index },
+          h("h3", null, book.title),
+          h("p", null, `Автор: ${book.author}`),
+          h("p", null, `Цена: ${book.price} руб.`)
+        ))
   );
 }
 
@@ -35,6 +42,14 @@ function getPage() {
 
 function App() {
   const [page, setPage] = useState(getPage);
+  const [cart, setCart] = useState([]);
+  const [message, setMessage] = useState("");
+
+  function addBook(book) {
+    // Функциональное обновление не теряет данные при быстрых нажатиях.
+    setCart(current => [...current, book]);
+    setMessage(`Добавлено: ${book.title}`);
+  }
 
   useEffect(() => {
     function changePage() {
@@ -50,7 +65,12 @@ function App() {
       h("a", { href: "#/catalog", "aria-current": page === "catalog" ? "page" : undefined }, "Каталог"),
       h("a", { href: "#/cart", "aria-current": page === "cart" ? "page" : undefined }, "Корзина")
     ),
-    page === "catalog" ? h(Catalog) : h(Cart)
+    page === "catalog"
+      ? h(React.Fragment, null,
+          h(Catalog, { onAdd: addBook }),
+          h("p", { className: "status", role: "status" }, message)
+        )
+      : h(Cart, { cart })
   );
 }
 
