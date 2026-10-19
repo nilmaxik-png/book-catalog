@@ -86,11 +86,22 @@ function isOverdue(task, today) {
   return task.status !== "Done" && task.deadline < today;
 }
 
-function TaskList({ tasks, onStatusChange, today }) {
+function StatusFilter({ value, onChange }) {
+  return h("div", { className: "field" },
+    h("label", { htmlFor: "statusFilter" }, "Фильтр по статусу:"),
+    h("select", { id: "statusFilter", value, onChange: event => onChange(event.target.value) },
+      h("option", { value: "all" }, "Все статусы"),
+      STATUSES.map(status => h("option", { key: status, value: status }, status))
+    )
+  );
+}
+
+function TaskList({ tasks, total, onStatusChange, today }) {
   return h("section", null,
     h("h2", null, "Список задач"),
+    h("p", { className: "task-count", "aria-live": "polite" }, `Показано задач: ${tasks.length} из ${total}`),
     tasks.length === 0
-      ? h("p", null, "Задач пока нет.")
+      ? h("p", null, total === 0 ? "Задач пока нет." : "Нет задач с выбранным статусом.")
       : h("div", { className: "table-wrap" },
           h("table", null,
             h("thead", null, h("tr", null,
@@ -118,6 +129,8 @@ function TaskList({ tasks, onStatusChange, today }) {
 function App() {
   const [tasks, setTasks] = useState([]);
   const today = useToday();
+  const [filter, setFilter] = useState("all");
+  const visibleTasks = filter === "all" ? tasks : tasks.filter(task => task.status === filter);
 
   function changeStatus(id, status) {
     if (!STATUSES.includes(status)) return;
@@ -135,7 +148,8 @@ function App() {
     h("p", { className: "current-date" }, "Текущая дата: ",
       h("time", { dateTime: today }, formatDate(today))),
     h(TaskForm, { onAdd: addTask }),
-    h(TaskList, { tasks, onStatusChange: changeStatus, today })
+    h(StatusFilter, { value: filter, onChange: setFilter }),
+    h(TaskList, { tasks: visibleTasks, total: tasks.length, onStatusChange: changeStatus, today })
   );
 }
 
