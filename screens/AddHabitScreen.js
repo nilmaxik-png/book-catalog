@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles";
 
-export default function AddHabitScreen({ navigation, onAdd }) {
+export default function AddHabitScreen({ navigation, onAdd, isLoaded }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -13,7 +13,10 @@ export default function AddHabitScreen({ navigation, onAdd }) {
       setError("Введите название от 1 до 80 символов.");
       return;
     }
-    onAdd(cleanedName);
+    if (onAdd(cleanedName) === false) {
+      setError("Не удалось добавить привычку. Дождитесь загрузки данных.");
+      return;
+    }
     navigation.goBack();
   }
 
@@ -32,7 +35,7 @@ export default function AddHabitScreen({ navigation, onAdd }) {
         onSubmitEditing={submit}
       />
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-      <Button title="Добавить" onPress={submit} />
+      <Button title="Добавить" onPress={submit} disabled={!isLoaded} />
       <View style={styles.actions}>
         <Button title="Отмена" onPress={() => navigation.goBack()} />
       </View>
