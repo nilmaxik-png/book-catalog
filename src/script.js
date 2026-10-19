@@ -23,7 +23,7 @@ function Catalog({ onAdd }) {
   );
 }
 
-function Cart({ cart }) {
+function Cart({ cart, onRemove, onClear }) {
   return h("section", null,
     h("h2", null, "Корзина"),
     h("p", { className: "cart-count" }, `Количество книг в корзине: ${cart.length}`),
@@ -32,9 +32,11 @@ function Cart({ cart }) {
       : cart.map((book, index) => h("article", { className: "book", key: index },
           h("h3", null, book.title),
           h("p", null, `Автор: ${book.author}`),
-          h("p", null, `Цена: ${book.price} руб.`)
+          h("p", null, `Цена: ${book.price} руб.`),
+          h("button", { type: "button", onClick: () => onRemove(index) }, "Удалить")
         )),
-    h("p", { className: "total" }, `Общая стоимость: ${cart.reduce((sum, book) => sum + book.price, 0)} руб.`)
+    h("p", { className: "total" }, `Общая стоимость: ${cart.reduce((sum, book) => sum + book.price, 0)} руб.`),
+    h("button", { type: "button", onClick: onClear, disabled: cart.length === 0 }, "Очистить корзину")
   );
 }
 
@@ -46,6 +48,16 @@ function App() {
   const [page, setPage] = useState(getPage);
   const [cart, setCart] = useState([]);
   const [message, setMessage] = useState("");
+
+  function removeBook(index) {
+    setCart(current => current.filter((book, bookIndex) => bookIndex !== index));
+    setMessage("");
+  }
+
+  function clearCart() {
+    setCart([]);
+    setMessage("");
+  }
 
   function addBook(book) {
     // Функциональное обновление не теряет данные при быстрых нажатиях.
@@ -72,7 +84,7 @@ function App() {
           h(Catalog, { onAdd: addBook }),
           h("p", { className: "status", role: "status" }, message)
         )
-      : h(Cart, { cart })
+      : h(Cart, { cart, onRemove: removeBook, onClear: clearCart })
   );
 }
 
