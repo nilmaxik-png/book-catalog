@@ -68,10 +68,53 @@ function OperationForm({ onAdd }) {
   );
 }
 
+function formatMoney(cents) {
+  return new Intl.NumberFormat("ru-RU", {
+    style: "currency", currency: "RUB"
+  }).format(cents / 100);
+}
+
+function OperationsList({ operations }) {
+  return h("section", null,
+    h("h2", null, "Список операций"),
+    h("p", null, `Всего операций: ${operations.length}`),
+    operations.length === 0
+      ? h("p", null, "Операций пока нет.")
+      : h("div", { className: "table-wrap" },
+          h("table", null,
+            h("thead", null, h("tr", null,
+              h("th", { scope: "col" }, "Тип"),
+              h("th", { scope: "col" }, "Категория"),
+              h("th", { scope: "col" }, "Сумма")
+            )),
+            h("tbody", null, operations.map(operation => h("tr", { key: operation.id },
+              h("td", null, operation.type === "income" ? "Доход" : "Расход"),
+              h("td", null, operation.category),
+              h("td", null, formatMoney(operation.amountCents))
+            )))
+          )
+        )
+  );
+}
+
 function App() {
+  const [operations, setOperations] = useState([]);
+
+  function addOperation(data) {
+    const totalCents = operations.reduce((sum, operation) => sum + operation.amountCents, 0);
+    if (!Number.isSafeInteger(totalCents + data.amountCents)) {
+      return "Общая сумма слишком велика для точного расчёта.";
+    }
+    const id = window.crypto?.randomUUID?.()
+      || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setOperations(current => [...current, { id, ...data }]);
+    return "";
+  }
+
   return h("main", null,
     h("h1", null, "Учёт личных финансов"),
-    h(OperationForm, { onAdd: () => {} })
+    h(OperationForm, { onAdd: addOperation }),
+    h(OperationsList, { operations })
   );
 }
 
