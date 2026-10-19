@@ -58,3 +58,13 @@ th, td {
 td:first-child {
   overflow-wrap: anywhere;
 }
+
+.overdue {
+  background: #ffe0e0;
+}
+
+.overdue-label {
+  display: block;
+  margin-top: 4px;
+  color: #a00000;
+}

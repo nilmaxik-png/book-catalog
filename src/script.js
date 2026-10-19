@@ -82,7 +82,11 @@ function formatDate(value) {
   return value.split("-").reverse().join(".");
 }
 
-function TaskList({ tasks, onStatusChange }) {
+function isOverdue(task, today) {
+  return task.status !== "Done" && task.deadline < today;
+}
+
+function TaskList({ tasks, onStatusChange, today }) {
   return h("section", null,
     h("h2", null, "Список задач"),
     tasks.length === 0
@@ -94,9 +98,12 @@ function TaskList({ tasks, onStatusChange }) {
               h("th", { scope: "col" }, "Дедлайн"),
               h("th", { scope: "col" }, "Статус")
             )),
-            h("tbody", null, tasks.map(task => h("tr", { key: task.id },
+            h("tbody", null, tasks.map(task => h("tr", { key: task.id, className: isOverdue(task, today) ? "overdue" : undefined },
               h("td", null, task.title),
-              h("td", null, h("time", { dateTime: task.deadline }, formatDate(task.deadline))),
+              h("td", null,
+                h("time", { dateTime: task.deadline }, formatDate(task.deadline)),
+                isOverdue(task, today) && h("strong", { className: "overdue-label" }, "Просрочена")
+              ),
               h("td", null, h("select", {
                 value: task.status,
                 "aria-label": `Статус задачи: ${task.title}`,
@@ -128,7 +135,7 @@ function App() {
     h("p", { className: "current-date" }, "Текущая дата: ",
       h("time", { dateTime: today }, formatDate(today))),
     h(TaskForm, { onAdd: addTask }),
-    h(TaskList, { tasks, onStatusChange: changeStatus })
+    h(TaskList, { tasks, onStatusChange: changeStatus, today })
   );
 }
 
