@@ -26,13 +26,15 @@ function Catalog({ onAdd }) {
 function Cart({ cart }) {
   return h("section", null,
     h("h2", null, "Корзина"),
+    h("p", { className: "cart-count" }, `Количество книг в корзине: ${cart.length}`),
     cart.length === 0
       ? h("p", null, "Корзина пуста.")
       : cart.map((book, index) => h("article", { className: "book", key: index },
           h("h3", null, book.title),
           h("p", null, `Автор: ${book.author}`),
           h("p", null, `Цена: ${book.price} руб.`)
-        ))
+        )),
+    h("p", { className: "total" }, `Общая стоимость: ${cart.reduce((sum, book) => sum + book.price, 0)} руб.`)
   );
 }
 
@@ -63,7 +65,7 @@ function App() {
     h("h1", null, "Каталог книг"),
     h("nav", { "aria-label": "Навигация" },
       h("a", { href: "#/catalog", "aria-current": page === "catalog" ? "page" : undefined }, "Каталог"),
-      h("a", { href: "#/cart", "aria-current": page === "cart" ? "page" : undefined }, "Корзина")
+      h("a", { href: "#/cart", "aria-current": page === "cart" ? "page" : undefined }, `Корзина (${cart.length})`)
     ),
     page === "catalog"
       ? h(React.Fragment, null,
