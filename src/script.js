@@ -55,10 +55,43 @@ function TaskForm({ onAdd }) {
   );
 }
 
+function formatDate(value) {
+  return value.split("-").reverse().join(".");
+}
+
+function TaskList({ tasks }) {
+  return h("section", null,
+    h("h2", null, "Список задач"),
+    tasks.length === 0
+      ? h("p", null, "Задач пока нет.")
+      : h("div", { className: "table-wrap" },
+          h("table", null,
+            h("thead", null, h("tr", null,
+              h("th", { scope: "col" }, "Название"),
+              h("th", { scope: "col" }, "Дедлайн")
+            )),
+            h("tbody", null, tasks.map(task => h("tr", { key: task.id },
+              h("td", null, task.title),
+              h("td", null, h("time", { dateTime: task.deadline }, formatDate(task.deadline)))
+            )))
+          )
+        )
+  );
+}
+
 function App() {
+  const [tasks, setTasks] = useState([]);
+
+  function addTask(data) {
+    const id = window.crypto?.randomUUID?.()
+      || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setTasks(current => [...current, { id, ...data, status: "To Do" }]);
+  }
+
   return h("main", null,
     h("h1", null, "Менеджер задач"),
-    h(TaskForm, { onAdd: () => {} })
+    h(TaskForm, { onAdd: addTask }),
+    h(TaskList, { tasks })
   );
 }
 
