@@ -1,0 +1,63 @@
+body {
+  margin: 20px;
+  font-family: "Times New Roman", serif;
+  font-size: 16px;
+  background: white;
+  color: black;
+}
+
+main {
+  max-width: 850px;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+input, select {
+  box-sizing: border-box;
+  width: 260px;
+  max-width: 100%;
+  padding: 3px;
+}
+
+.error {
+  color: #b00000;
+}
+
+.status {
+  margin: 12px 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #999;
+  padding: 6px;
+  text-align: left;
+}
+
+.totals dt {
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.totals dd {
+  margin-left: 20px;
+}
