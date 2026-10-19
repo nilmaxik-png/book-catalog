@@ -5,8 +5,8 @@
   "description": "Практическое занятие №3: Каталог книг",
   "scripts": {
     "build": "node tools/build.cjs",
-    "start": "node tools/server.cjs",
-    "dev": "npm run build && npm start"
+    "start": "npm run build && node tools/server.cjs",
+    "dev": "npm start"
   },
   "dependencies": {
     "react": "18.3.1",
@@ -15,5 +15,7 @@
   "devDependencies": {
     "esbuild": "0.24.2"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }
