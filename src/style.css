@@ -1,0 +1,42 @@
+body {
+  margin: 20px;
+  font-family: "Times New Roman", serif;
+  font-size: 16px;
+  color: black;
+  background: white;
+}
+
+main {
+  max-width: 700px;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+nav {
+  margin-bottom: 20px;
+}
+
+nav a {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+.book {
+  border-bottom: 1px solid #aaa;
+  padding: 12px 0;
+}
+
+.book h3, .book p {
+  margin: 0 0 8px;
+}
+
+.status {
+  min-height: 20px;
+}
+
+.total {
+  font-weight: bold;
+  margin-top: 20px;
+}
