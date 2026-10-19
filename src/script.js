@@ -97,6 +97,23 @@ function OperationsList({ operations }) {
   );
 }
 
+function Totals({ operations }) {
+  let income = 0;
+  let expense = 0;
+  for (const operation of operations) {
+    if (operation.type === "income") income += operation.amountCents;
+    else expense += operation.amountCents;
+  }
+  return h("section", { "aria-live": "polite" },
+    h("h2", null, "Итоги"),
+    h("dl", { className: "totals" },
+      h("dt", null, "Общий доход:"), h("dd", { id: "totalIncome" }, formatMoney(income)),
+      h("dt", null, "Общий расход:"), h("dd", { id: "totalExpense" }, formatMoney(expense)),
+      h("dt", null, "Баланс:"), h("dd", { id: "balance" }, formatMoney(income - expense))
+    )
+  );
+}
+
 function App() {
   const [operations, setOperations] = useState([]);
 
@@ -114,6 +131,7 @@ function App() {
   return h("main", null,
     h("h1", null, "Учёт личных финансов"),
     h(OperationForm, { onAdd: addOperation }),
+    h(Totals, { operations }),
     h(OperationsList, { operations })
   );
 }
