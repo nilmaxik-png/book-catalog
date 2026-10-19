@@ -1,0 +1,60 @@
+body {
+  margin: 20px;
+  font-family: "Times New Roman", serif;
+  font-size: 16px;
+  color: black;
+  background: white;
+}
+
+main {
+  max-width: 950px;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+input {
+  box-sizing: border-box;
+  width: 300px;
+  max-width: 100%;
+  padding: 3px;
+}
+
+select {
+  max-width: 100%;
+  padding: 3px;
+}
+
+.error {
+  color: #b00000;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #999;
+  text-align: left;
+  vertical-align: top;
+  padding: 6px;
+}
+
+td:first-child {
+  overflow-wrap: anywhere;
+}
