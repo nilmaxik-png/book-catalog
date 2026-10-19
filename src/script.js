@@ -104,7 +104,7 @@ function formatMoney(cents) {
   }).format(cents / 100);
 }
 
-function OperationsList({ operations }) {
+function OperationsList({ operations, onRemove }) {
   return h("section", null,
     h("h2", null, "Список операций"),
     h("p", null, `Всего операций: ${operations.length}`),
@@ -115,12 +115,15 @@ function OperationsList({ operations }) {
             h("thead", null, h("tr", null,
               h("th", { scope: "col" }, "Тип"),
               h("th", { scope: "col" }, "Категория"),
-              h("th", { scope: "col" }, "Сумма")
+              h("th", { scope: "col" }, "Сумма"),
+              h("th", { scope: "col" }, "Действие")
             )),
             h("tbody", null, operations.map(operation => h("tr", { key: operation.id },
               h("td", null, operation.type === "income" ? "Доход" : "Расход"),
               h("td", null, operation.category),
-              h("td", null, formatMoney(operation.amountCents))
+              h("td", null, formatMoney(operation.amountCents)),
+              h("td", null, h("button", { type: "button", onClick: () => onRemove(operation.id),
+                "aria-label": `Удалить операцию: ${operation.category}` }, "Удалить"))
             )))
           )
         )
@@ -165,6 +168,10 @@ function App() {
     }
   }, [operations]);
 
+  function removeOperation(id) {
+    setOperations(current => current.filter(operation => operation.id !== id));
+  }
+
   function addOperation(data) {
     const totalCents = operations.reduce((sum, operation) => sum + operation.amountCents, 0);
     if (!Number.isSafeInteger(totalCents + data.amountCents)) {
@@ -182,7 +189,7 @@ function App() {
     h(OperationForm, { onAdd: addOperation }),
     h("p", { className: "status", role: "status" }, storageMessage),
     h(Totals, { operations }),
-    h(OperationsList, { operations })
+    h(OperationsList, { operations, onRemove: removeOperation })
   );
 }
 
