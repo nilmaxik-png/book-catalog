@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const h = React.createElement;
+const STATUSES = ["To Do", "In Progress", "Done"];
 
 function isValidDeadline(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -59,7 +60,7 @@ function formatDate(value) {
   return value.split("-").reverse().join(".");
 }
 
-function TaskList({ tasks }) {
+function TaskList({ tasks, onStatusChange }) {
   return h("section", null,
     h("h2", null, "Список задач"),
     tasks.length === 0
@@ -68,11 +69,17 @@ function TaskList({ tasks }) {
           h("table", null,
             h("thead", null, h("tr", null,
               h("th", { scope: "col" }, "Название"),
-              h("th", { scope: "col" }, "Дедлайн")
+              h("th", { scope: "col" }, "Дедлайн"),
+              h("th", { scope: "col" }, "Статус")
             )),
             h("tbody", null, tasks.map(task => h("tr", { key: task.id },
               h("td", null, task.title),
-              h("td", null, h("time", { dateTime: task.deadline }, formatDate(task.deadline)))
+              h("td", null, h("time", { dateTime: task.deadline }, formatDate(task.deadline))),
+              h("td", null, h("select", {
+                value: task.status,
+                "aria-label": `Статус задачи: ${task.title}`,
+                onChange: event => onStatusChange(task.id, event.target.value)
+              }, STATUSES.map(status => h("option", { key: status, value: status }, status))))
             )))
           )
         )
@@ -82,16 +89,21 @@ function TaskList({ tasks }) {
 function App() {
   const [tasks, setTasks] = useState([]);
 
+  function changeStatus(id, status) {
+    if (!STATUSES.includes(status)) return;
+    setTasks(current => current.map(task => task.id === id ? { ...task, status } : task));
+  }
+
   function addTask(data) {
     const id = window.crypto?.randomUUID?.()
       || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setTasks(current => [...current, { id, ...data, status: "To Do" }]);
+    setTasks(current => [...current, { id, ...data, status: STATUSES[0] }]);
   }
 
   return h("main", null,
     h("h1", null, "Менеджер задач"),
     h(TaskForm, { onAdd: addTask }),
-    h(TaskList, { tasks })
+    h(TaskList, { tasks, onStatusChange: changeStatus })
   );
 }
 
