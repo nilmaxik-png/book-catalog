@@ -1,7 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 
 const h = React.createElement;
+const STORAGE_KEY = "personal-finance-v1";
+
+function loadOperations() {
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (saved === null) return { operations: [], message: "" };
+    const data = JSON.parse(saved);
+    if (!data || data.version !== 1 || !Array.isArray(data.operations)) throw new Error("format");
+    const ids = new Set();
+    let totalCents = 0;
+    for (const operation of data.operations) {
+      if (!operation || typeof operation.id !== "string" || !operation.id || ids.has(operation.id)
+          || !["income", "expense"].includes(operation.type)
+          || typeof operation.category !== "string" || !operation.category.trim()
+          || operation.category.length > 80
+          || !Number.isSafeInteger(operation.amountCents) || operation.amountCents <= 0) {
+        throw new Error("operation");
+      }
+      ids.add(operation.id);
+      totalCents += operation.amountCents;
+      if (!Number.isSafeInteger(totalCents)) throw new Error("total");
+    }
+    return { operations: data.operations, message: "Данные восстановлены из localStorage." };
+  } catch {
+    return {
+      operations: [],
+      message: "Не удалось восстановить сохранённые данные. При добавлении операции будет создана новая история."
+    };
+  }
+}
 
 // Храним деньги в копейках: 0,10 + 0,20 даст ровно 0,30.
 function parseAmount(text) {
@@ -115,7 +145,25 @@ function Totals({ operations }) {
 }
 
 function App() {
-  const [operations, setOperations] = useState([]);
+  // Ленивая загрузка выполняется один раз при открытии приложения.
+  const [initialData] = useState(loadOperations);
+  const [operations, setOperations] = useState(initialData.operations);
+  const [storageMessage, setStorageMessage] = useState(initialData.message);
+  const firstSave = useRef(true);
+
+  useEffect(() => {
+    // Не перезаписываем содержимое хранилища во время первого чтения.
+    if (firstSave.current) {
+      firstSave.current = false;
+      return;
+    }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, operations }));
+      setStorageMessage("Данные сохранены в localStorage.");
+    } catch {
+      setStorageMessage("Не удалось сохранить данные. При перезагрузке последние изменения могут пропасть.");
+    }
+  }, [operations]);
 
   function addOperation(data) {
     const totalCents = operations.reduce((sum, operation) => sum + operation.amountCents, 0);
@@ -130,7 +178,9 @@ function App() {
 
   return h("main", null,
     h("h1", null, "Учёт личных финансов"),
+    h("p", null, "Доходы и расходы сохраняются в этом браузере."),
     h(OperationForm, { onAdd: addOperation }),
+    h("p", { className: "status", role: "status" }, storageMessage),
     h(Totals, { operations }),
     h(OperationsList, { operations })
   );
