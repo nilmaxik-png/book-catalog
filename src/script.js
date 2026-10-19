@@ -96,7 +96,7 @@ function StatusFilter({ value, onChange }) {
   );
 }
 
-function TaskList({ tasks, total, onStatusChange, today }) {
+function TaskList({ tasks, total, onStatusChange, onRemove, today }) {
   return h("section", null,
     h("h2", null, "Список задач"),
     h("p", { className: "task-count", "aria-live": "polite" }, `Показано задач: ${tasks.length} из ${total}`),
@@ -107,7 +107,8 @@ function TaskList({ tasks, total, onStatusChange, today }) {
             h("thead", null, h("tr", null,
               h("th", { scope: "col" }, "Название"),
               h("th", { scope: "col" }, "Дедлайн"),
-              h("th", { scope: "col" }, "Статус")
+              h("th", { scope: "col" }, "Статус"),
+              h("th", { scope: "col" }, "Действие")
             )),
             h("tbody", null, tasks.map(task => h("tr", { key: task.id, className: isOverdue(task, today) ? "overdue" : undefined },
               h("td", null, task.title),
@@ -119,7 +120,9 @@ function TaskList({ tasks, total, onStatusChange, today }) {
                 value: task.status,
                 "aria-label": `Статус задачи: ${task.title}`,
                 onChange: event => onStatusChange(task.id, event.target.value)
-              }, STATUSES.map(status => h("option", { key: status, value: status }, status))))
+              }, STATUSES.map(status => h("option", { key: status, value: status }, status)))),
+              h("td", null, h("button", { type: "button", onClick: () => onRemove(task.id),
+                "aria-label": `Удалить задачу: ${task.title}` }, "Удалить"))
             )))
           )
         )
@@ -131,6 +134,10 @@ function App() {
   const today = useToday();
   const [filter, setFilter] = useState("all");
   const visibleTasks = filter === "all" ? tasks : tasks.filter(task => task.status === filter);
+
+  function removeTask(id) {
+    setTasks(current => current.filter(task => task.id !== id));
+  }
 
   function changeStatus(id, status) {
     if (!STATUSES.includes(status)) return;
@@ -149,7 +156,7 @@ function App() {
       h("time", { dateTime: today }, formatDate(today))),
     h(TaskForm, { onAdd: addTask }),
     h(StatusFilter, { value: filter, onChange: setFilter }),
-    h(TaskList, { tasks: visibleTasks, total: tasks.length, onStatusChange: changeStatus, today })
+    h(TaskList, { tasks: visibleTasks, total: tasks.length, onStatusChange: changeStatus, onRemove: removeTask, today })
   );
 }
 
