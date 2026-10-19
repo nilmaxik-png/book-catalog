@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 
 // createElement позволяет писать React в обычном файле .js без JSX.
@@ -22,10 +22,35 @@ function Catalog() {
   );
 }
 
+function Cart() {
+  return h("section", null,
+    h("h2", null, "Корзина"),
+    h("p", null, "Корзина пуста.")
+  );
+}
+
+function getPage() {
+  return window.location.hash === "#/cart" ? "cart" : "catalog";
+}
+
 function App() {
+  const [page, setPage] = useState(getPage);
+
+  useEffect(() => {
+    function changePage() {
+      setPage(getPage());
+    }
+    window.addEventListener("hashchange", changePage);
+    return () => window.removeEventListener("hashchange", changePage);
+  }, []);
+
   return h("main", null,
     h("h1", null, "Каталог книг"),
-    h(Catalog)
+    h("nav", { "aria-label": "Навигация" },
+      h("a", { href: "#/catalog", "aria-current": page === "catalog" ? "page" : undefined }, "Каталог"),
+      h("a", { href: "#/cart", "aria-current": page === "cart" ? "page" : undefined }, "Корзина")
+    ),
+    page === "catalog" ? h(Catalog) : h(Cart)
   );
 }
 
