@@ -60,8 +60,13 @@ export function useHabits() {
     setHabits(current => current.map(habit => habit.id === id ? { ...habit, done: !habit.done } : habit));
   }
 
+  function removeHabit(id) {
+    if (!isLoaded) return;
+    setHabits(current => current.filter(habit => habit.id !== id));
+  }
+
   return {
-    habits, isLoaded, loadError, saveError, isSaving, addHabit, toggleHabit,
+    habits, isLoaded, loadError, saveError, isSaving, addHabit, toggleHabit, removeHabit,
     retryLoad: () => setLoadAttempt(current => current + 1),
     retrySave: () => setSaveAttempt(current => current + 1)
   };

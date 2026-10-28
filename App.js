@@ -21,6 +21,7 @@ export default function App() {
                 {...props}
                 habits={data.habits}
                 onToggle={data.toggleHabit}
+                onRemove={data.removeHabit}
                 isLoaded={data.isLoaded}
                 loadError={data.loadError}
                 saveError={data.saveError}

@@ -3,7 +3,7 @@ import { View, Text, Button, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles";
 
-export default function HabitsScreen({ navigation, habits = [], onToggle,
+export default function HabitsScreen({ navigation, habits = [], onToggle, onRemove,
   isLoaded, loadError, saveError, isSaving, onRetryLoad, onRetrySave }) {
   if (!isLoaded) {
     return (
@@ -47,6 +47,14 @@ export default function HabitsScreen({ navigation, habits = [], onToggle,
               accessibilityLabel={`Изменить выполнение: ${item.name}`}
               onPress={() => onToggle(item.id)}
             />
+            <View style={styles.actions}>
+              <Button
+                title="Удалить"
+                color="#b00000"
+                accessibilityLabel={`Удалить привычку: ${item.name}`}
+                onPress={() => onRemove(item.id)}
+              />
+            </View>
           </View>
         )}
       />
