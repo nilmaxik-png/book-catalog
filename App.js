@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Button, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import TrafficMap from "./components/TrafficMap";
+import RoadDetails from "./components/RoadDetails";
 import { TRAFFIC_LEVELS, formatSourceTime } from "./domain/traffic";
 import { useTraffic } from "./hooks/useTraffic";
 import { styles } from "./styles";
@@ -9,6 +10,7 @@ import { styles } from "./styles";
 export default function App() {
   const { segments, snapshot, loading, error, refresh } = useTraffic();
   const [selectedId, setSelectedId] = useState(null);
+  const selected = segments.find(segment => segment.id === selectedId);
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safe}>
@@ -46,6 +48,9 @@ export default function App() {
               <Text style={styles.caption}>Получаем данные датчиков...</Text>
             </View> : null}
           </View>
+          {selected ? <RoadDetails segment={selected} onClose={() => setSelectedId(null)} /> : (
+            <Text style={styles.caption}>Нажмите на цветной маркер, чтобы увидеть информацию об участке.</Text>
+          )}
           <Text style={styles.footer}>Источник: NYC DOT / NYC Open Data</Text>
         </View>
       </SafeAreaView>

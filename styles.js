@@ -17,5 +17,13 @@ export const styles = StyleSheet.create({
   error: { color: "#a00000", fontSize: 13 },
   mapFrame: { flex: 1, minHeight: 220, position: "relative", borderWidth: 1, borderColor: "#9ca3af", borderRadius: 6, overflow: "hidden" },
   loading: { ...StyleSheet.absoluteFillObject, backgroundColor: "#ffffffdd", justifyContent: "center", alignItems: "center", gap: 10 },
-  footer: { color: "#6b7280", fontSize: 11 }
+  footer: { color: "#6b7280", fontSize: 11 },
+  details: { maxHeight: 180, flexGrow: 0, borderWidth: 1, borderColor: "#d1d5db", borderRadius: 6, backgroundColor: "#f9fafb" },
+  detailsContent: { padding: 10, gap: 5 },
+  detailsHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  detailsTitle: { fontSize: 14, fontWeight: "bold", color: "#111827" },
+  close: { color: "#1d4ed8", fontSize: 13, paddingVertical: 3 },
+  roadName: { fontSize: 14, fontWeight: "600", color: "#111827" },
+  detailsText: { fontSize: 13, color: "#111827" },
+  statusLine: { flexDirection: "row", alignItems: "center", gap: 6 }
 });
