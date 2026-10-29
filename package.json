@@ -5,6 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "build:map": "node tools/build-map.cjs",
+    "prepare": "npm run build:map",
     "start": "expo start",
     "web": "expo start --web",
     "android": "expo start --android",
@@ -15,12 +17,12 @@
   },
   "dependencies": {
     "expo": "57.0.31",
+    "leaflet": "1.9.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-maps": "1.27.2",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-web": "~0.21.0",
-    "leaflet": "1.9.4"
+    "react-native-webview": "13.16.1"
   }
 }

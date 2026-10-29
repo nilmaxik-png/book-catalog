@@ -21,7 +21,7 @@ export default function RoadDetails({ segment, onClose }) {
         Средняя скорость: {segment.speedKmh.toFixed(1).replace(".", ",")} км/ч
       </Text>
       <Text style={styles.detailsText}>Путь: {segment.distanceKm.toFixed(2).replace(".", ",")} км · Проезд: {Math.floor(seconds / 60)} мин {seconds % 60} с</Text>
-      <Text style={styles.caption}>Расчёт API между двумя точками участка с учётом пробок. Это не показание датчика.</Text>
+      <Text style={styles.caption}>Оценка проезда между двумя точками участка с учётом пробок.</Text>
     </ScrollView>
   );
 }
