@@ -1,0 +1,21 @@
+.traffic-map {
+  position: absolute;
+  inset: 0;
+  min-height: 240px;
+  width: 100%;
+  z-index: 0;
+  font-family: Arial, sans-serif;
+}
+.traffic-marker { background: transparent; border: 0; }
+.traffic-dot {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-sizing: border-box;
+  box-shadow: 0 1px 5px #0008;
+}
+.traffic-dot-selected { outline: 3px solid #172554; outline-offset: 1px; }
+.traffic-marker:focus-visible { outline: 3px solid #172554; border-radius: 50%; }

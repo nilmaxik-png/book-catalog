@@ -1,53 +1,58 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { classifySpeed, formatReceivedTime, normalizeTrafficMatrix } from "../domain/traffic.js";
-import { MOSCOW_ROADS } from "../domain/mapRegion.js";
+import { classifySpeed, formatSourceTime, getNewYorkDay, normalizeTrafficRows, parsePosition } from "../domain/traffic.js";
 
-const roads = MOSCOW_ROADS.slice(0, 3);
-const cell = (index, changes = {}) => ({ from_index: index, to_index: index, distance: 1, time: 120, ...changes });
-const matrix = cells => ({ sources_to_targets: cells.map(value => [value]) });
+const day = "2026-10-28";
+const row = (changes = {}) => ({
+  link_id: "road-1", link_name: "Test road", borough: "Queens", speed: "30",
+  travel_time: "180", status: "0", data_as_of: `${day}T15:00:00.000`,
+  link_points: "40.75,-73.95 40.76,-73.96 40.77,-", ...changes
+});
 
 test("traffic colors have exact boundaries and reject missing speeds", () => {
-  for (const [speed, key] of [[0, "jam"], [19.99, "jam"], [20, "medium"], [39.99, "medium"], [40, "free"]]) {
-    assert.equal(classifySpeed(speed).key, key);
-  }
+  assert.equal(classifySpeed(0).key, "jam");
+  assert.equal(classifySpeed(19.99).key, "jam");
+  assert.equal(classifySpeed(20).key, "medium");
+  assert.equal(classifySpeed(39.99).key, "medium");
+  assert.equal(classifySpeed(40).key, "free");
   for (const value of [NaN, Infinity, -1, null]) assert.equal(classifySpeed(value), null);
 });
 
-test("kilometres and seconds become average speed and all three colors", () => {
-  const result = normalizeTrafficMatrix(matrix([cell(0, { time: 360 }), cell(1), cell(2, { time: 60 })]), roads);
-  assert.deepEqual(result.map(road => road.speedKmh), [10, 30, 60]);
-  assert.deepEqual(result.map(road => road.level.key), ["jam", "medium", "free"]);
-  assert.equal(result[0].name, roads[0].name);
-  assert.deepEqual(result[0].position, roads[0].position);
+test("map coordinates ignore truncated and out-of-area points", () => {
+  assert.deepEqual(parsePosition(row().link_points), { latitude: 40.76, longitude: -73.96 });
+  for (const value of [null, "", "40.7,-", "91,181", "40.7,", "40.7,-74.891"])
+    assert.equal(parsePosition(value), null);
 });
 
-test("a missing route cannot be replaced by another matrix cell", () => {
-  const result = normalizeTrafficMatrix({ sources_to_targets: [
-    [cell(0, { to_index: 1 })], [cell(1)], [cell(2), cell(2)]
-  ] }, roads);
-  assert.deepEqual(result.map(road => road.id), [roads[1].id]);
+test("only the most recent measurement per road is used", () => {
+  const segments = normalizeTrafficRows([
+    row({ speed: "5", data_as_of: `${day}T14:00:00.000` }), row(),
+    row({ link_id: "road-2", speed: "15" })
+  ], day);
+  assert.equal(segments.length, 2);
+  assert.equal(segments[0].name, "Test road");
+  assert.ok(Math.abs(segments[0].speedKmh - 48.28032) < 0.00001);
+  assert.equal(segments[0].level.key, "free");
+  assert.equal(segments[1].level.key, "medium");
 });
 
-test("zero, negative, missing and implausible times and distances are excluded", () => {
-  for (const changes of [{ time: 0 }, { time: -1 }, { time: "" }, { time: null },
-    { distance: 0 }, { distance: "bad" }, { distance: true }, { distance: Infinity }, { time: 1 }]) {
-    assert.deepEqual(normalizeTrafficMatrix(matrix([cell(0, changes)]), roads), []);
-  }
-  assert.equal(normalizeTrafficMatrix(matrix([cell(0, { distance: "1", time: "120" })]), roads)[0].speedKmh, 30);
-  assert.throws(() => normalizeTrafficMatrix({ error: "unavailable" }, roads), /формат/);
+test("a failed latest sensor reading cannot revive an older valid reading", () => {
+  assert.deepEqual(normalizeTrafficRows([
+    row(), row({ status: "-101", speed: "0", travel_time: "0", data_as_of: `${day}T16:00:00.000` })
+  ], day), []);
 });
 
-test("route anchors and markers are in Moscow", () => {
-  assert.equal(new Set(MOSCOW_ROADS.map(road => road.id)).size, MOSCOW_ROADS.length);
-  for (const road of MOSCOW_ROADS) {
-    for (const [latitude, longitude] of [road.start, road.end]) {
-      assert.ok(latitude > 55.5 && latitude < 56 && longitude > 37.3 && longitude < 37.9);
-    }
-    assert.ok(road.position.latitude > 55.5 && road.position.longitude > 37.3);
-  }
+test("old, malformed and unavailable measurements are excluded", () => {
+  const values = [
+    row({ data_as_of: "2026-10-27T23:59:00.000" }), row({ speed: "" }),
+    row({ speed: "wrong" }), row({ status: "-101" }), row({ travel_time: "0" }),
+    row({ data_as_of: "2026-02-30T12:00:00.000" }), row({ link_points: "broken" })
+  ];
+  assert.deepEqual(normalizeTrafficRows(values, day), []);
+  assert.throws(() => normalizeTrafficRows({ error: "unavailable" }, day), /формат/);
 });
 
-test("receipt time uses Moscow regardless of the device time zone", () => {
-  assert.match(formatReceivedTime("2026-10-29T21:05:06Z"), /30\.10\.2026.*00:05:06/);
+test("sensor time stays unchanged while the query day follows New York", () => {
+  assert.equal(formatSourceTime(`${day}T15:00:00.000`), "28.10.2026 15:00:00");
+  assert.equal(getNewYorkDay(new Date("2026-10-29T01:00:00Z")), "2026-10-28");
 });

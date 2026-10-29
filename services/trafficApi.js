@@ -1,23 +1,24 @@
-import { MOSCOW_ROADS } from "../domain/mapRegion.js";
-import { normalizeTrafficMatrix } from "../domain/traffic.js";
+import { getNewYorkDay, normalizeTrafficRows } from "../domain/traffic.js";
 
-export const SOURCE_URL = "https://api.1traffic.ru/v2/";
-// Общедоступный учебный ключ из официальной документации. Лимит: 1 запрос/с.
-export const API_ENDPOINT = "https://api.1traffic.ru/v2/matrix?key=demo&traffic=1";
+export const SOURCE_URL = "https://data.cityofnewyork.us/Transportation/DOT-Traffic-Speeds/i4gi-tjb9";
+export const API_ENDPOINT = "https://data.cityofnewyork.us/resource/i4gi-tjb9.json";
 
-export function buildTrafficRequest(roads = MOSCOW_ROADS) {
-  const point = ([lat, lon]) => ({ lat, lon });
-  return JSON.stringify({
-    sources: roads.map(road => point(road.start)),
-    targets: roads.map(road => point(road.end))
+export function buildTrafficUrl(now = new Date()) {
+  const sourceDay = getNewYorkDay(now);
+  const params = new URLSearchParams({
+    "$select": "link_id,link_name,borough,speed,travel_time,status,data_as_of,link_points",
+    "$where": `data_as_of >= '${sourceDay}T00:00:00'`,
+    "$order": "data_as_of DESC,link_id ASC",
+    "$limit": "500"
   });
+  return `${API_ENDPOINT}?${params.toString()}`;
 }
 
 function aborted() {
   return Object.assign(new Error("Запрос отменён."), { name: "AbortError" });
 }
 
-export async function fetchTraffic({ fetchImpl = globalThis.fetch, signal, timeoutMs = 20000 } = {}) {
+export async function fetchTraffic({ fetchImpl = globalThis.fetch, signal, now = new Date(), timeoutMs = 20000 } = {}) {
   if (signal?.aborted) throw aborted();
   const controller = new AbortController();
   const cancel = () => controller.abort();
@@ -25,25 +26,27 @@ export async function fetchTraffic({ fetchImpl = globalThis.fetch, signal, timeo
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
   try {
-    const response = await fetchImpl(API_ENDPOINT, {
-      method: "POST",
-      // JSON с этим типом принимается API без предварительного OPTIONS,
-      // который сервер не поддерживает. Запрос работает и в браузере.
-      headers: { Accept: "application/json", "Content-Type": "text/plain;charset=UTF-8" },
-      body: buildTrafficRequest(), signal: controller.signal
+    const response = await fetchImpl(buildTrafficUrl(now), {
+      headers: { Accept: "application/json" }, signal: controller.signal, cache: "no-store"
     });
     if (!response.ok) {
-      throw new Error(response.status === 429
-        ? "Учебный API временно занят. Повторите обновление через несколько секунд."
-        : `Источник данных недоступен (HTTP ${response.status}). Попробуйте ещё раз.`);
+      const hint = response.status === 429 ? "Слишком много запросов. Повторите немного позже."
+        : `Источник данных недоступен (HTTP ${response.status}). Попробуйте ещё раз.`;
+      throw new Error(hint);
     }
-    let data;
-    try { data = await response.json(); }
+    let rows;
+    try { rows = await response.json(); }
     catch { throw new Error("Источник вернул ответ, который не удалось прочитать."); }
     if (signal?.aborted) throw aborted();
-    const segments = normalizeTrafficMatrix(data, MOSCOW_ROADS);
-    if (!segments.length) throw new Error("API не вернул время проезда по московским участкам. Попробуйте обновить позже.");
-    return { segments, receivedAt: new Date().toISOString() };
+    const sourceDay = getNewYorkDay(now);
+    const segments = normalizeTrafficRows(rows, sourceDay);
+    if (!segments.length) {
+      throw new Error("Нет корректных измерений за сегодняшний день в Нью-Йорке. Обновите данные позже.");
+    }
+    return {
+      segments, sourceDay, receivedAt: new Date().toISOString(),
+      newestObservation: segments.reduce((latest, segment) => segment.observedAt > latest ? segment.observedAt : latest, "")
+    };
   } catch (error) {
     if (signal?.aborted) throw aborted();
     if (timedOut) throw new Error("Источник не ответил за 20 секунд. Проверьте интернет и повторите обновление.");
