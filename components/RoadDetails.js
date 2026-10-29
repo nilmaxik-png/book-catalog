@@ -1,6 +1,5 @@
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { formatSourceTime } from "../domain/traffic";
 import { styles } from "../styles";
 
 export default function RoadDetails({ segment, onClose }) {
@@ -19,9 +18,10 @@ export default function RoadDetails({ segment, onClose }) {
         <Text style={styles.detailsText}>{segment.level.label} · {segment.borough}</Text>
       </View>
       <Text style={styles.detailsText}>
-        Скорость: {segment.speedKmh.toFixed(1).replace(".", ",")} км/ч · Проезд: {Math.floor(seconds / 60)} мин {seconds % 60} с
+        Средняя скорость: {segment.speedKmh.toFixed(1).replace(".", ",")} км/ч
       </Text>
-      <Text style={styles.caption}>Время датчика: {formatSourceTime(segment.observedAt)}</Text>
+      <Text style={styles.detailsText}>Путь: {segment.distanceKm.toFixed(2).replace(".", ",")} км · Проезд: {Math.floor(seconds / 60)} мин {seconds % 60} с</Text>
+      <Text style={styles.caption}>Расчёт API между двумя точками участка с учётом пробок. Это не показание датчика.</Text>
     </ScrollView>
   );
 }

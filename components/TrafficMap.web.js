@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./map.web.css";
-import { NEW_YORK_REGION } from "../domain/mapRegion";
+import { MOSCOW_REGION } from "../domain/mapRegion";
 
 export default function TrafficMap({ segments, selectedId, onSelect }) {
   const container = useRef(null);
@@ -12,7 +12,7 @@ export default function TrafficMap({ segments, selectedId, onSelect }) {
 
   useEffect(() => {
     const instance = L.map(container.current).setView([
-      NEW_YORK_REGION.latitude, NEW_YORK_REGION.longitude
+      MOSCOW_REGION.latitude, MOSCOW_REGION.longitude
     ], 10);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -54,5 +54,5 @@ export default function TrafficMap({ segments, selectedId, onSelect }) {
     }
   }, [segments, selectedId, onSelect]);
 
-  return <div ref={container} className="traffic-map" aria-label="Карта дорожной обстановки Нью-Йорка" />;
+  return <div ref={container} className="traffic-map" aria-label="Карта дорожной обстановки Москвы" />;
 }
